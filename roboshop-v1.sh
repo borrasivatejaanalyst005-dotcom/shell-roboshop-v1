@@ -24,14 +24,14 @@ echo "$instance instance ID: $instance_id"
 if [ $instance != "fronted" ]; then
 IP=$(aws ec2 describe-instances \
     --instance-ids i-02bd08f762f3e1801 \
-    --query 'Reservations[*].Instances[*].PublicIpAddress' \
+    --query 'Reservations[*].Instances[*].PrivateIpAddress' \
     --output text
 )
 r53_record="${instance}.${domain_name}"
 else
 IP=$(aws ec2 describe-instances \
     --instance-ids i-02bd08f762f3e1801 \
-    --query 'Reservations[*].Instances[*].PrivateIpAddress' \
+    --query 'Reservations[*].Instances[*].publicIpAddress' \
     --output text
 )
 r53_record="$domain_name"

@@ -27,7 +27,7 @@ IP=$(aws ec2 describe-instances \
     --query 'Reservations[*].Instances[*].PublicIpAddress' \
     --output text
 )
-r53_record="$instance.$domain_name"
+r53_record="${instance}.${domain_name}"
 else
 IP=$(aws ec2 describe-instances \
     --instance-ids i-02bd08f762f3e1801 \
@@ -38,7 +38,7 @@ r53_record="$domain_name"
 fi
 
 #update route53 record
-
+  echo "Record: ${r53_record}"
 aws route53 change-resource-record-sets \
 --hosted-zone-id $hosted_zone_id \
   --change-batch '{

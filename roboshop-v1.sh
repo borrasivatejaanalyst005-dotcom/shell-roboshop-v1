@@ -21,7 +21,7 @@ instance_id=$(aws ec2 run-instances \
 )
 echo "$instance id : $instance_id"
 
-if [$instance != "fronted" ]; then
+if [ $instance != "fronted" ]; then
 IP=$(aws ec2 describe-instances \
     --instance-ids i-02bd08f762f3e1801 \
     --query 'Reservations[*].Instances[*].PublicIpAddress' \

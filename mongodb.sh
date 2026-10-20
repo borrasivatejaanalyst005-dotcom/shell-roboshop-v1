@@ -20,3 +20,5 @@ echo "creating instance: $instance"
     )
 
 echo "$instance ID: $instance_id"
+
+done

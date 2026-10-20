@@ -19,7 +19,7 @@ echo "creating instance: $instance"
             --output text
     )
 
-echo "$instance id : $instance_id"
+echo "$instance instance ID: $instance_id"
 
 if [ $instance != "fronted" ]; then
 IP=$(aws ec2 describe-instances \

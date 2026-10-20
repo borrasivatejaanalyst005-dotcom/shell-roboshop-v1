@@ -19,5 +19,43 @@ instance_id=$(aws ec2 run-instances \
     --output text
 
 )
+echo "$instance id : $instance_id"
 
+if [$instance != "fronted" ]; then
+IP=$(aws ec2 describe-instances \
+    --instance-ids i-02bd08f762f3e1801 \
+    --query 'Reservations[*].Instances[*].PublicIpAddress' \
+    --output text
+)
+r53_record = "$instance.$domain_name"
+else
+IP=$(aws ec2 describe-instances \
+    --instance-ids i-02bd08f762f3e1801 \
+    --query 'Reservations[*].Instances[*].PrivateIpAddress' \
+    --output text
+)
+r53_record = "$domain_name"
+fi
+
+#update route53 record
+
+aws route53 change-resource-record-sets \
+--hosted-zone-id $hosted_zone_id \
+  --change-batch '{
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": ":$r53_record",
+        "Type": "A",
+        "TTL": 1,
+        "ResourceRecords": [
+          {
+            "Value": "$IP"
+          }
+        ]
+      }
+    }
+  ]
+}'
 done

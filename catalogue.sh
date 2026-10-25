@@ -37,7 +37,7 @@ dnf install nodejs -y &>> $logs_file
 validate $? "installing nodejs 24"
 
 id roboshop &>> $logs_file
-if [$? -ne 0 ]; then
+if [ $? -ne 0 ]; then
 useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>> $logs_file
 validate $? "creating system user"
 else
@@ -55,8 +55,9 @@ validate $? "downloading catalogue"
 unzip /tmp/catalogue.zip
 validate $? "unzip catalogue"
 
-npm install
-validate $? "installing dependies"
+npm install &>> $logs_file
+validate $? "Installing dependencies"
+
  sed -i "s/DOMAIN_NAME/$domain_name" catalogue.service
  cp catalogue.service /etc/systemd/system/catalogue.service
 

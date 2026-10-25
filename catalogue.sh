@@ -3,8 +3,8 @@
 user_id=$(id -u)
 logs_folder="/var/log/roboshop"
 logs_file="${logs_folder}/${0}.log"
-domain_name="teja97s.store"
-
+domain_name="daws92s.store"
+scripts_dir=$(dirname "$(realpath "$0")")
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
@@ -45,6 +45,8 @@ else
     echo -e "$(timestamp) [INFO] System user roboshop already exist...${Y}SKIPPING${N}"
 fi
 
+rm -rf /app
+validate $? "Removing old code"
 
 mkdir -p /app
 validate $? "Creating app directory"
@@ -59,14 +61,32 @@ validate $? "Unzipping catalogue"
 npm install &>> $logs_file
 validate $? "Installing dependencies"
 
-sed -i "s/DOMAIN_NAME/$domain_name" catalogue.service
-cp catalogue.service /etc/systemd/system/catalogue.service
+sed -i "s/DOMAIN_NAME/$domain_name/g" "$scripts_dir/catalogue.service"
+cp "$scripts_dir/catalogue.service" /etc/systemd/system/catalogue.service
 
 systemctl daemon-reload &>> $logs_file
 systemctl enable catalogue &>> $logs_file
 systemctl start catalogue &>> $logs_file
 validate $? "Starting and enabling catalogue"
 
+cp "$scripts_dir/mongo.repo" /etc/yum.repos.d/mongo.repo
+validate $? "Adding Mongo repo"
+
+dnf install mongodb-mongosh -y &>> $logs_file
+validate $? "Installing MongoDB Client"
+
+product_count=$(mongosh --host "mongodb.$domain_name" --quiet --eval 'db.getSiblingDB("catalogue").products.countDocuments()' 2>> $logs_file)
+validate $? "Connecting to MongoDB"
+
+if [ "$product_count" -eq 0 ]; then
+    mongosh --host "mongodb.$domain_name" </app/db/master-data.js &>> $logs_file
+    validate $? "Loading products"
+else
+    echo -e "$(timestamp) [INFO] Products are already loaded...${Y}SKIPPING${N}"
+fi
+
+systemctl restart catalogue
+validate $? "Restarting Catalogue"
 
 echo "$(timestamp) [INFO] Script completed in $SECONDS seconds"
 echo "$(timestamp) [INFO] ==== Script completed Execution =====" | tee -a $logs_file

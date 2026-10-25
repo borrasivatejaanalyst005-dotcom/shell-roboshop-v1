@@ -85,15 +85,14 @@ else
     echo -e "$(timestamp) [INFO] Master data already loaded...${Y}SKIPPING${N}"
 fi
 
-
 mysql -h "mysql.$domain_name" -uroot -pRoboShop@1 < /app/db/app-user.sql
 validate $? "Creating APP user"
-
 
 systemctl daemon-reload &>> $logs_file
 systemctl enable shipping &>> $logs_file
 systemctl restart shipping
 validate $? "Restarting/Starting shipping"
+
 
 echo "$(timestamp) [INFO] Script completed in $SECONDS seconds"
 echo "$(timestamp) [INFO] ==== Script completed Execution =====" | tee -a $logs_file

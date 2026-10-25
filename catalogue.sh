@@ -2,8 +2,9 @@
 
 user_id=$(id -u)
 logs_folder="/var/log/roboshop"
-DOMAIN_NAME="teja97s.store"
 logs_file="${logs_folder}/${0}.log"
+domain_name="teja97s.store"
+
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
@@ -32,24 +33,24 @@ validate(){
 echo "$(timestamp) [INFO] ==== Script started Execution =====" | tee -a $logs_file
 
 dnf module disable nodejs -y &>> $logs_file
-dnf module enable nodejs:24 -y  &>> $logs_file
+dnf module enable nodejs:24 -y &>> $logs_file
 dnf install nodejs -y &>> $logs_file
-validate $? "installing nodejs 24"
+validate $? "Installing nodejs 24"
 
 id roboshop &>> $logs_file
 if [ $? -ne 0 ]; then
-useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>> $logs_file
-validate $? "creating system user"
+    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>> $logs_file
+    validate $? "Creating system user"
 else
-echo -e "$(timestamp) [INFO] system user roboshop already exist ... ${Y}SKIPPING${N}"
-
+    echo -e "$(timestamp) [INFO] System user roboshop already exist...${Y}SKIPPING${N}"
 fi
 
-mkdir -p /app
-validate $? "creating app directory"
 
-curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip
-validate $? "downloading catalogue"
+mkdir -p /app
+validate $? "Creating app directory"
+
+curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip &>> $logs_file
+validate $? "Downloading catalogue"
 
 cd /app
 unzip /tmp/catalogue.zip &>> $logs_file
@@ -58,12 +59,13 @@ validate $? "Unzipping catalogue"
 npm install &>> $logs_file
 validate $? "Installing dependencies"
 
- sed -i "s/DOMAIN_NAME/$domain_name" catalogue.service
- cp catalogue.service /etc/systemd/system/catalogue.service
+sed -i "s/DOMAIN_NAME/$domain_name/g" "$scripts_dir/catalogue.service"
+cp catalogue.service /etc/systemd/system/catalogue.service
 
- systemctl daemon-reload &>> $logs_file
+systemctl daemon-reload &>> $logs_file
 systemctl enable catalogue &>> $logs_file
 systemctl start catalogue &>> $logs_file
+validate $? "Starting and enabling catalogue"
 
 
 echo "$(timestamp) [INFO] Script completed in $SECONDS seconds"

@@ -21,21 +21,18 @@ echo "creating instance: $instance"
 
 echo "$instance instance ID: $instance_id"
 
-if [ $instance != "fronted" ]; then
-IP=$(aws ec2 describe-instances \
-    --instance-ids i-02bd08f762f3e1801 \
-    --query 'Reservations[*].Instances[*].PrivateIpAddress' \
-    --output text
-)
-r53_record="${instance}.${domain_name}"
-else
-IP=$(aws ec2 describe-instances \
-    --instance-ids i-02bd08f762f3e1801 \
-    --query 'Reservations[*].Instances[*].publicIpAddress' \
-    --output text
-)
-r53_record="$domain_name"
-fi
+ if [ $instance != "frontend" ]; then
+        IP=$( aws ec2 describe-instances --instance-ids $instance_id \
+             --query 'Reservations[].Instances[].PrivateIpAddress' --output text
+        )
+        r53_record="${instance}.${domain_name}"
+    else
+        IP=$( aws ec2 describe-instances --instance-ids $instance_id \
+             --query 'Reservations[].Instances[].PublicIpAddress' --output text
+        )
+        r53_record="${domain_name}"
+    fi
+
 
 #update route53 record
   echo "Record: ${r53_record}"

@@ -8,9 +8,9 @@ hosted_zone_id="Z10432903JOF2BO9EQCV3"
 
 for instance in $@
 do
-echo "creating instance: $instance"
+    echo "Creating instance: $instance"
 
- instance_id=$(aws ec2 run-instances \
+    instance_id=$(aws ec2 run-instances \
             --image-id $ami_id \
             --instance-type $instance_type \
             --security-groups "roboshop-common" "roboshop-$instance" \
@@ -19,8 +19,9 @@ echo "creating instance: $instance"
             --output text
     )
 
-echo "$instance instance ID: $instance_id"
-if [ $instance != "frontend" ]; then
+    echo "$instance instance ID: $instance_id"
+
+    if [ $instance != "frontend" ]; then
         IP=$( aws ec2 describe-instances --instance-ids $instance_id \
              --query 'Reservations[].Instances[].PrivateIpAddress' --output text
         )
@@ -32,27 +33,23 @@ if [ $instance != "frontend" ]; then
         r53_record="${domain_name}"
     fi
 
-#update route53 record
-  echo "Record: ${r53_record}"
-aws route53 change-resource-record-sets \
---hosted-zone-id $hosted_zone_id \
-  --change-batch '{
-  "Changes": [
-    {
-      "Action": "UPSERT",
-      "ResourceRecordSet": {
-        "Name": "'$r53_record'",
-        "Type": "A",
-        "TTL": 1,
-        "ResourceRecords": [
-          {
-            "Value": "'$IP'"
-          }
+    # update R53 record
+    echo "Record: ${r53_record}"
+    aws route53 change-resource-record-sets \
+    --hosted-zone-id $hosted_zone_id \
+    --change-batch '{
+        "Changes": [
+            {
+                "Action": "UPSERT",
+                "ResourceRecordSet": {
+                    "Name": "'$r53_record'",
+                    "Type": "A",
+                    "TTL": 1,
+                    "ResourceRecords": [{"Value": "'$IP'"}]
+                }
+            }
         ]
-      }
-    }
-  ]
-}'
+    }'
 
-echo "update r53 record for $instance"
+    echo "Updated R53 record for $instance"
 done

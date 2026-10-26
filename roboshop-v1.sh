@@ -16,20 +16,17 @@ do
             --security-groups "roboshop-common" "roboshop-$instance" \
             --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=roboshop-$instance}]" \
             --query 'Instances[0].InstanceId' \
-            --output text
-    )
+            --output text )
 
     echo "$instance instance ID: $instance_id"
 
     if [ $instance != "frontend" ]; then
         IP=$( aws ec2 describe-instances --instance-ids $instance_id \
-             --query 'Reservations[].Instances[].PrivateIpAddress' --output text
-        )
+             --query 'Reservations[].Instances[].PrivateIpAddress' --output text )
         r53_record="${instance}.${domain_name}"
     else
         IP=$( aws ec2 describe-instances --instance-ids $instance_id \
-             --query 'Reservations[].Instances[].PublicIpAddress' --output text
-        )
+             --query 'Reservations[].Instances[].PublicIpAddress' --output text )
         r53_record="${domain_name}"
     fi
 
